@@ -1,0 +1,22 @@
+.no-scrollbar {
+-ms-overflow-style: none; /* IE and Edge */
+scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+
+/* Make the scroll container smooth when keyboard scrolling */
+.reviews-scroll-container { scroll-behavior: smooth; }
+
+
+/* while dragging, show grabbing cursor */
+.reviews-scroll-container.dragging { cursor: grabbing; cursor: -webkit-grabbing; }
+
+
+/* small focus ring for accessibility */
+.reviews-scroll-container:focus { outline: 2px solid rgba(0,0,0,0.08); outline-offset: 4px; }
+
+
+@media (prefers-reduced-motion: reduce) {
+.reviews-scroll-container { scroll-behavior: auto; }
+}
