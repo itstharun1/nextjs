@@ -12,7 +12,7 @@ const Navbar = () => {
 				<div className="flex justify-between items-center h-16">
 					{/* LOGO */}
 					<h1 className="text-2xl font-semibold tracking-wide text-black">
-						Hostel<span className="text-blue-900 font-bold">Manager</span>
+						Hostels<span className="text-blue-900 font-bold">Manager</span>
 					</h1>
 
 					{/* DESKTOP MENU */}

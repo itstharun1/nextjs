@@ -22,7 +22,7 @@ const Footer = () => {
           {/* ABOUT */}
           <div className="space-y-4">
             <h4 className="text-2xl font-semibold text-black tracking-tight">
-              Hostel<span className="text-blue-900 font-bold">Manager</span>
+              Hostels<span className="text-blue-900 font-bold">Manager</span>
             </h4>
 
             <p className="text-black/80 text-sm font-medium leading-relaxed">
@@ -82,7 +82,7 @@ const Footer = () => {
 
             <div className="text-black/80 text-sm space-y-2 mb-4">
               <div className="flex items-center gap-2">
-                <span>support@hostelmanager.com</span>
+                <span>support@hostelsmanager.com</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ const Footer = () => {
 
         {/* Bottom Section */}
         <div className="mt-10 border-t border-black/20 pt-6 flex flex-col md:flex-row justify-between text-black/80 text-sm font-medium">
-          <p>© {new Date().getFullYear()} HostelManager. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} HostelsManager. All rights reserved.</p>
 
           <div className="flex gap-4 mt-3 md:mt-0">
             <a className="hover:text-black cursor-pointer">Privacy</a>
