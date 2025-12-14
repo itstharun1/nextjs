@@ -57,9 +57,9 @@ const Navbar = () => {
 							</div>
 						</li>
 
-						<li className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer">
-							Login / Register
-						</li>
+						<Link href={'/loginpage'} className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer">
+							Login
+						</Link>
 					</ul>
 
 					{/* MOBILE MENU BUTTON */}

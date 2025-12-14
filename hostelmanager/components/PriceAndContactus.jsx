@@ -15,6 +15,95 @@ import Link from "next/link";
 export default function PricingContact() {
 	const [ready, setReady] = useState(false);
 
+	const API_BASE = process.env.NEXT_PUBLIC_API || "";
+
+	const [plans, setPlans] = useState([]); // fetched plans
+	const [loadingPlans, setLoadingPlans] = useState(false);
+	const [plansError, setPlansError] = useState(null);
+	// reusable fetch function
+	async function fetchPricingPlans() {
+		setLoadingPlans(true);
+		setPlansError(null);
+		try {
+			const res = await fetch(
+				`${API_BASE}/api/pricingplans?limit=10&page=1&visible=true`
+			);
+			if (!res.ok) throw new Error(`Failed to fetch pricing (${res.status})`);
+			const data = await res.json();
+			const items = Array.isArray(data.items)
+				? data.items
+				: Array.isArray(data)
+				? data
+				: [];
+			const mapped = items.map((p) => ({
+				id: p._id || p.id,
+				name: p.name || "",
+				description: p.description || "",
+				price: typeof p.price === "number" ? p.price : Number(p.price || 0),
+				currency: p.currency || "INR",
+				billingCycle: p.billingCycle || "monthly",
+				features: Array.isArray(p.features) ? p.features : [],
+				isPopular: !!p.isPopular,
+				visible: p.visible ?? true,
+			}));
+			setPlans(mapped);
+		} catch (err) {
+			console.error("fetchPricingPlans:", err);
+			setPlansError(err.message || "Failed to load plans");
+			setPlans([]);
+		} finally {
+			setLoadingPlans(false);
+			// small delay for UI readiness if you want animation
+			setTimeout(() => setReady(true), 80);
+		}
+	}
+
+	// call on mount
+	useEffect(() => {
+		fetchPricingPlans();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [API_BASE]);
+
+	// helper to format price (simple)
+	function formatPrice(curr, amount) {
+		// simple INR symbol for INR, fallback to currency code
+		if (!amount && amount !== 0) return "";
+		if (String(curr).toUpperCase() === "INR") return `₹${amount}`;
+		return `${curr} ${amount}`;
+	}
+
+	// fallback plans (used while empty)
+	const fallbackPlans = [
+		{
+			id: "f-starter",
+			name: "Starter",
+			description: "Small hostels — basic features",
+			price: 499,
+			currency: "INR",
+			billingCycle: "monthly",
+			features: ["Manage up to 20 beds", "Basic analytics"],
+			isPopular: false,
+		},
+		{
+			id: "f-pro",
+			name: "Pro",
+			description: "Growing hostels — automation & payments",
+			price: 999,
+			currency: "INR",
+			billingCycle: "monthly",
+			features: [
+				"Unlimited beds",
+				"Automated reminders & invoicing",
+				"Priority support",
+			],
+			isPopular: true,
+		},
+	];
+
+	// Use plans if present otherwise fallback while not loading
+	const displayPlans =
+		plans.length > 0 ? plans : loadingPlans ? [] : fallbackPlans;
+
 	// small ready flag to avoid layout flicker while fonts/CSS settle
 	useEffect(() => {
 		// short delay to let CSS render; adjust to 10-120 ms if needed
@@ -47,9 +136,12 @@ export default function PricingContact() {
 								<h3 className="text-lg md:text-xl font-extrabold text-black">
 									Pricing
 								</h3>
-								<span className="inline-flex items-center gap-2 text-sm bg-black text-white px-3 py-1 rounded-full">
-									Popular
-								</span>
+								{/* Show badge only if any plan is popular, otherwise hide */}
+								{displayPlans.some((p) => p.isPopular) && (
+									<span className="inline-flex items-center gap-2 text-sm bg-black text-white px-3 py-1 rounded-full">
+										Popular
+									</span>
+								)}
 							</div>
 
 							<p className="mt-3 text-black/75">
@@ -59,61 +151,63 @@ export default function PricingContact() {
 
 							{/* Plans */}
 							<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-								<div className="rounded-xl border border-white/25 p-4 bg-gradient-to-br from-white/80 to-white/60">
-									<div className="flex items-baseline justify-between gap-3">
-										<div>
-											<h4 className="text-lg font-semibold text-black">
-												Starter
-											</h4>
-											<p className="text-xs text-black/60">
-												Small hostels — basic features
-											</p>
-										</div>
-										<div className="text-right">
-											<div className="text-xl font-extrabold text-black">
-												₹499
-											</div>
-											<div className="text-xs text-black/60">per month</div>
-										</div>
+								{loadingPlans ? (
+									<div className="col-span-full text-center text-black/60">
+										Loading plans...
 									</div>
-									<ul className="mt-3 text-sm text-black/70 space-y-2">
-										<li className="flex items-center gap-2">
-											<Check className="w-4 h-4" /> Manage up to 20 beds
-										</li>
-										<li className="flex items-center gap-2">
-											<Check className="w-4 h-4" /> Basic analytics
-										</li>
-									</ul>
-								</div>
+								) : plansError ? (
+									<div className="col-span-full text-center text-red-600">
+										Error: {plansError}
+									</div>
+								) : (
+									displayPlans.map((plan) => (
+										<div
+											key={plan.id}
+											className={`rounded-xl border border-white/25 p-4 ${
+												plan.isPopular
+													? "bg-gradient-to-br from-white/90 to-white/70 shadow-md"
+													: "bg-gradient-to-br from-white/80 to-white/60"
+											}`}
+										>
+											<div className="flex items-baseline justify-between gap-3">
+												<div>
+													<h4 className="text-lg font-semibold text-black">
+														{plan.name}
+													</h4>
+													{plan.description && (
+														<p className="text-xs text-black/60">
+															{plan.description}
+														</p>
+													)}
+												</div>
+												<div className="text-right">
+													<div className="text-xl font-extrabold text-black">
+														{formatPrice(plan.currency, plan.price)}
+													</div>
+													<div className="text-xs text-black/60">
+														{plan.billingCycle === "yearly"
+															? "per year"
+															: "per month"}
+													</div>
+												</div>
+											</div>
 
-								<div className="rounded-xl border border-white/25 p-4 bg-gradient-to-br from-white/90 to-white/70 shadow-md">
-									<div className="flex items-baseline justify-between gap-3">
-										<div>
-											<h4 className="text-lg font-semibold text-black">Pro</h4>
-											<p className="text-xs text-black/60">
-												Growing hostels — automation & payments
-											</p>
+											<ul className="mt-3 text-sm text-black/70 space-y-2">
+												{plan.features && plan.features.length > 0 ? (
+													plan.features.map((f, idx) => (
+														<li key={idx} className="flex items-center gap-2">
+															<Check className="w-4 h-4" /> {f}
+														</li>
+													))
+												) : (
+													<li className="text-sm text-black/60">
+														No features listed.
+													</li>
+												)}
+											</ul>
 										</div>
-										<div className="text-right">
-											<div className="text-xl font-extrabold text-black">
-												₹999
-											</div>
-											<div className="text-xs text-black/60">per month</div>
-										</div>
-									</div>
-									<ul className="mt-3 text-sm text-black/70 space-y-2">
-										<li className="flex items-center gap-2">
-											<Check className="w-4 h-4" /> Unlimited beds
-										</li>
-										<li className="flex items-center gap-2">
-											<Check className="w-4 h-4" /> Automated reminders &
-											invoicing
-										</li>
-										<li className="flex items-center gap-2">
-											<Check className="w-4 h-4" /> Priority support
-										</li>
-									</ul>
-								</div>
+									))
+								)}
 							</div>
 
 							<div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
@@ -162,8 +256,6 @@ export default function PricingContact() {
 								Questions about pricing, onboarding or a custom plan? Drop us a
 								message — we reply within 24 hours.
 							</p>
-
-							<ContactForm />
 						</div>
 					</div>
 				</div>
